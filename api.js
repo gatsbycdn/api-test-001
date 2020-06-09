@@ -1,13 +1,7 @@
 const { ApolloServer, gql } = require('apollo-server')
-const { UsersDAO } = require('./UsersDAO.js')
 const { ConfigsDAO } = require('./ConfigsDAO.js')
 
 const typeDefs = gql`
-  type User {
-    email: String
-    name: String
-  }
-
   type Config {
     name: String
     address: String
@@ -21,32 +15,26 @@ const typeDefs = gql`
   }
 
   type Query {
-    user(email: String!): User!
-    listUser: [User]
     listConfig: [Config]
   }
 
   type Mutation {
-    addUser(email: String, name: String): User
-    updateUser(email: String, name: String): User
-    deleteUser(email: String): String
     updateConfig: [Config]
     deleteConfig(id: String): String
+    removeDNSRecord(id: String): String
+    addDNSRecord(ps: String, ip: String): String
   }
 `
 
 const resolvers = {
   Query: {
-    user: UsersDAO.getUser,
-    listUser: UsersDAO.listUser,
     listConfig: ConfigsDAO.listConfig
   },
   Mutation: {
-    addUser: UsersDAO.addUser,
-    updateUser: UsersDAO.updateUser,
-    deleteUser: UsersDAO.deleteUser,
     updateConfig: ConfigsDAO.updateConfigs,
     deleteConfig: ConfigsDAO.deleteOneConfig,
+    removeDNSRecord: ConfigsDAO.removeOneDNSRecord,
+    addDNSRecord: ConfigsDAO.addDNSRecord
   }
 }
 
