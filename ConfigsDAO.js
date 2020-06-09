@@ -52,7 +52,7 @@ class ConfigsDAO {
   static async removeOneDNSRecord (_, arg) {
     try {
       const headers = {
-        'Authorization': `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        Authorization: `Bearer ${process.env.DNS_WRITE_BEARER}`,
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
@@ -76,7 +76,7 @@ class ConfigsDAO {
       const configs = await conn.db('test').collection('configs')
       await configs.deleteMany({})
       const headers = {
-        'Authorization': `Bearer ${process.env.DNS_BEARER}`,
+        Authorization: `Bearer ${process.env.DNS_BEARER}`,
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
@@ -109,10 +109,10 @@ class ConfigsDAO {
     }
   }
 
-  static async addDNSRecord(_, arg) {
+  static async addDNSRecord (_, arg) {
     try {
       const headers = {
-        'Authorization': `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        Authorization: `Bearer ${process.env.DNS_WRITE_BEARER}`,
         'Content-Type': 'application/json'
       }
       const params = {
@@ -128,14 +128,11 @@ class ConfigsDAO {
         .then(res => JSON.parse(res))
         .then(res => res.result)
         .then(res => res.id)
-      return res.id
     } catch (e) {
       console.error(e)
       return { error: e }
     }
   }
 }
-
-
 
 module.exports = { ConfigsDAO: ConfigsDAO }
