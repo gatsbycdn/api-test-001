@@ -3,20 +3,19 @@ const { MongoClient } = require('mongodb')
 const fetch = require('node-fetch')
 
 class ConfigsDAO {
-
   static async getAlienIp () {
     const apiURI = 'https://api.ipify.org'
-    const alienIp = await fetch(apiURI, { method:'GET' })
+    const alienIp = await fetch(apiURI, { method: 'GET' })
       .then(res => res.text())
-      .then(res => ({ip: res}))
+      .then(res => ({ ip: res }))
     return alienIp
   }
 
   static async getEarthIp () {
     const apiURI = 'http://pv.sohu.com/cityjson?ie=utf-8'
-    const earthIp = await fetch(apiURI, { method:'GET' })
+    const earthIp = await fetch(apiURI, { method: 'GET' })
       .then(res => res.text())
-      .then(res => res.slice(0,-1))
+      .then(res => res.slice(0, -1))
       .then(res => res.split('=')[1])
       .then(res => JSON.parse(res))
     return earthIp
@@ -49,7 +48,6 @@ class ConfigsDAO {
       const configs = await conn.db('test').collection('configs')
       // const myString = await users.find({}, {email:1}).toArray();
       const config = await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
-      console.log(config)
       return config
     } catch (e) {
       console.error(e)
@@ -81,7 +79,6 @@ class ConfigsDAO {
         headers: headers
       }).then((res) => {
         console.log(res)
-        this.deleteOneConfig(_, arg)
         return res.id
       })
     } catch (e) {
@@ -95,7 +92,7 @@ class ConfigsDAO {
       const configs = await conn.db('test').collection('configs')
       await configs.deleteMany({})
       const headers = {
-        'Authorization': `Bearer ${process.env.DNS_BEARER}`,
+        Authorization: `Bearer ${process.env.DNS_BEARER}`,
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
@@ -122,7 +119,7 @@ class ConfigsDAO {
               }
           },
           { upsert: true })))
-        return 'success'
+      return 'success'
     } catch (e) {
       console.error(e)
       return { error: e }
@@ -132,17 +129,16 @@ class ConfigsDAO {
   static async addDNSRecord (_, arg) {
     try {
       const headers = {
-        'Authorization': `Bearer ${process.env.DNS_WRITE_BEARER}`,
-        'Accept': 'application/json',
+        Authorization: `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        Accept: 'application/json',
         'Content-Type': 'application/json'
       }
       const params = {
-        "type": "A",
-        "name": arg.ps,
-        "content": arg.ip,
-        //"priority": false,
-        "ttl": 120,
-        
+        type: 'A',
+        name: arg.ps,
+        content: arg.ip,
+        // "priority": false,
+        ttl: 120
       }
       const baseAPI = `https://api.cloudflare.com/client/v4/zones/${process.env.DNS_ZONE_ID}/dns_records`
       const successStatus = await fetch(baseAPI, { method: 'post', headers: headers, body: JSON.stringify(params) })
