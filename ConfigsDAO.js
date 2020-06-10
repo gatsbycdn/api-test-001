@@ -3,6 +3,25 @@ const { MongoClient } = require('mongodb')
 const fetch = require('node-fetch')
 
 class ConfigsDAO {
+
+  static async getAlienIp () {
+    const apiURI = 'https://api.ipify.org'
+    const alienIp = await fetch(apiURI, { method:'GET' })
+      .then(res => res.text())
+      .then(res => ({ip: res}))
+    return alienIp
+  }
+
+  static async getEarthIp () {
+    const apiURI = 'http://pv.sohu.com/cityjson?ie=utf-8'
+    const earthIp = await fetch(apiURI, { method:'GET' })
+      .then(res => res.text())
+      .then(res => res.slice(0,-1))
+      .then(res => res.split('=')[1])
+      .then(res => JSON.parse(res))
+    return earthIp
+  }
+
   static getDb () {
     const url = process.env.LOCAL_DB_URI || 'mongodb://localhost:27017'
     const client = new MongoClient(
@@ -17,7 +36,7 @@ class ConfigsDAO {
     try {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
-      const config = await configs.findOne({ name: arg.name })
+      const config = await configs.findOne({ ip: arg.ip })
       return config
     } catch (e) {
       console.error(e)
@@ -76,7 +95,7 @@ class ConfigsDAO {
       const configs = await conn.db('test').collection('configs')
       await configs.deleteMany({})
       const headers = {
-        Authorization: `Bearer ${process.env.DNS_BEARER}`,
+        'Authorization': `Bearer ${process.env.DNS_BEARER}`,
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
@@ -103,6 +122,7 @@ class ConfigsDAO {
               }
           },
           { upsert: true })))
+        return 'success'
     } catch (e) {
       console.error(e)
       return { error: e }
@@ -112,22 +132,24 @@ class ConfigsDAO {
   static async addDNSRecord (_, arg) {
     try {
       const headers = {
-        Authorization: `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        'Authorization': `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
       const params = {
-        type: 'A',
-        name: arg.ps,
-        content: arg.ip,
-        ttl: 120,
-        priority: false
+        "type": "A",
+        "name": arg.ps,
+        "content": arg.ip,
+        //"priority": false,
+        "ttl": 120,
+        
       }
       const baseAPI = `https://api.cloudflare.com/client/v4/zones/${process.env.DNS_ZONE_ID}/dns_records`
-      await fetch(baseAPI, { method: 'POST', headers: headers, data: params })
+      const successStatus = await fetch(baseAPI, { method: 'post', headers: headers, body: JSON.stringify(params) })
         .then(res => res.text())
         .then(res => JSON.parse(res))
-        .then(res => res.result)
-        .then(res => res.id)
+        .then(res => res.success)
+      return successStatus
     } catch (e) {
       console.error(e)
       return { error: e }
@@ -136,3 +158,5 @@ class ConfigsDAO {
 }
 
 module.exports = { ConfigsDAO: ConfigsDAO }
+
+// init mongodb db.configs.createIndex({"id":1},{ unique: true })

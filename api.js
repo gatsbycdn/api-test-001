@@ -14,12 +14,25 @@ const typeDefs = gql`
     vid: String
   }
 
+  type EarthIp {
+    cip: String
+    cid: String
+    cname: String
+  }
+
+  type AlienIp {
+    ip: String
+  }
+
   type Query {
     listConfig: [Config]
+    getConfig(ip: String): Config
+    getEarthIp: EarthIp
+    getAlienIp: AlienIp
   }
 
   type Mutation {
-    updateConfig: [Config]
+    updateConfig: String
     deleteConfig(id: String): String
     removeDNSRecord(id: String): String
     addDNSRecord(ps: String, ip: String): String
@@ -28,7 +41,10 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    listConfig: ConfigsDAO.listConfig
+    listConfig: ConfigsDAO.listConfig,
+    getConfig: ConfigsDAO.getConfig,
+    getAlienIp: ConfigsDAO.getAlienIp,
+    getEarthIp: ConfigsDAO.getEarthIp
   },
   Mutation: {
     updateConfig: ConfigsDAO.updateConfigs,
