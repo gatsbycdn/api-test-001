@@ -59,8 +59,14 @@ class ConfigsDAO {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       console.log(arg)
-      await configs.deleteOne({ id: arg.id })
-      return arg.id
+      const deleteResult = await configs.deleteOne({ id: arg.id })
+      const returnResult = {
+        result: deleteResult.result,
+        id: arg.id,
+        deletedCount: deleteResult.deletedCount
+      }
+      console.log(returnResult)
+      return returnResult
     } catch (e) {
       console.error(e)
     }
@@ -74,13 +80,17 @@ class ConfigsDAO {
       }
       const zoneId = process.env.DNS_ZONE_ID
       const apiURI = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${arg.id}`
-      await fetch(apiURI, {
+      const removeResult= await fetch(apiURI, {
         method: 'DELETE',
         headers: headers
-      }).then((res) => {
-        console.log(res)
-        return res.id
       })
+      .then(res => res.text())
+      .then(res => JSON.parse(res))
+      console.log(removeResult)
+
+      return removeResult
+
+
     } catch (e) {
       console.error(e)
     }
@@ -91,17 +101,21 @@ class ConfigsDAO {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       await configs.deleteMany({})
+      await configs.createIndex({"id":1},{ unique: true })
       const headers = {
         Authorization: `Bearer ${process.env.DNS_BEARER}`,
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
       const api = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`
-      await fetch(api, { method: 'GET', headers: headers })
+      const updateFromCloudFlare = await fetch(api, { method: 'GET', headers: headers })
         .then(res => res.text())
         .then(res => JSON.parse(res))
         .then(res => res.result)
-        .then(res => res.map(obj => configs.updateMany({ name: obj.name },
+
+      const itemsArray = Array.from(updateFromCloudFlare)
+
+      await Promise.all(itemsArray.map(obj => configs.updateMany({ name: obj.name },
           {
             $set:
               {
@@ -118,8 +132,14 @@ class ConfigsDAO {
                 address: obj.name
               }
           },
-          { upsert: true })))
-      return 'success'
+          { upsert: true }, function(err, result) {
+            if (err) throw err;
+            console.log(result.upsertedCount)
+         })))
+
+      //console.log(commandResult)
+
+      return updateFromCloudFlare
     } catch (e) {
       console.error(e)
       return { error: e }
@@ -141,15 +161,44 @@ class ConfigsDAO {
         ttl: 120
       }
       const baseAPI = `https://api.cloudflare.com/client/v4/zones/${process.env.DNS_ZONE_ID}/dns_records`
-      const successStatus = await fetch(baseAPI, { method: 'post', headers: headers, body: JSON.stringify(params) })
+      const cloudFlareApiCallback = await fetch(baseAPI, { method: 'post', headers: headers, body: JSON.stringify(params) })
         .then(res => res.text())
         .then(res => JSON.parse(res))
-        .then(res => res.success)
-      return successStatus
+        /*.then(res => {
+          console.log(res)
+          console.log(typeof(res.result.created_on))
+          res.success
+        })*/
+      console.log(cloudFlareApiCallback)
+      return cloudFlareApiCallback
     } catch (e) {
       console.error(e)
       return { error: e }
     }
+  }  
+  
+  static async allInOne () {
+    const proxyIP = await ConfigsDAO.getAlienIp()
+    const localIP = await ConfigsDAO.getEarthIp()
+
+    try {
+      const conn = await ConfigsDAO.getDb().connect()
+      const configs = await conn.db('test').collection('configs')
+      const config = await configs.findOne({ ip: proxyIP.ip })
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const configElse = configAll.filter(obj => obj.id!==config.id)
+      const all = {
+        proxyIP: proxyIP,
+        localIP: localIP,
+        config: config,
+        configElse: configElse
+      }
+      return all
+
+    } catch (e) {
+      console.error(e)
+    }
+    
   }
 }
 

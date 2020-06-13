@@ -1,3 +1,3 @@
 const { ConfigsDAO } = require('./ConfigsDAO.js')
 
-console.log(typeof(ConfigsDAO.addDNSRecord()))
+console.log(ConfigsDAO.allInOne())
