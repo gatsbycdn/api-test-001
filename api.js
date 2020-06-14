@@ -24,6 +24,14 @@ const typeDefs = gql`
     ip: String
   }
 
+  type ProxyIp {
+    fl: String
+    ip: String
+    ts: String
+    colo: String
+    loc: String
+  }
+
   type DeleteResult {
     n: Int
     ok: Int
@@ -78,7 +86,7 @@ const typeDefs = gql`
   }
 
   type AllInOne {
-    proxyIP: AlienIp
+    proxyIP: ProxyIp
     localIP: EarthIp
     config: Config
     configElse: [Config]

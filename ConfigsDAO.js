@@ -8,7 +8,21 @@ class ConfigsDAO {
     const alienIp = await fetch(apiURI, { method: 'GET' })
       .then(res => res.text())
       .then(res => ({ ip: res }))
+    console.log(alienIp)
     return alienIp
+  }
+
+  static async getProxyIp () {
+    const apiURI = 'https://www.cloudflare.com/cdn-cgi/trace'
+    const jsonText = await fetch(apiURI, { method: 'GET' })
+    .then(res => res.text())
+    .then(res => res.split('\n').join('",\n"'))
+    .then(res => res.split('=').join('":"'))
+    .then(res => res.slice(0,res.length-3))
+    .then(res => '{"' + res + '}')
+    .then(res => JSON.parse(res))
+    console.log(jsonText)
+    return jsonText
   }
 
   static async getEarthIp () {
@@ -178,7 +192,7 @@ class ConfigsDAO {
   }  
   
   static async allInOne () {
-    const proxyIP = await ConfigsDAO.getAlienIp()
+    const proxyIP = await ConfigsDAO.getProxyIp()
     const localIP = await ConfigsDAO.getEarthIp()
 
     try {
@@ -193,6 +207,7 @@ class ConfigsDAO {
         config: config,
         configElse: configElse
       }
+      console.log(all)
       return all
 
     } catch (e) {
