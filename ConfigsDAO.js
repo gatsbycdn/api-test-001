@@ -192,10 +192,11 @@ class ConfigsDAO {
   }  
   
   static async allInOne () {
-    const proxyIP = await ConfigsDAO.getProxyIp()
+    
     const localIP = await ConfigsDAO.getEarthIp()
 
     try {
+      const proxyIP = await ConfigsDAO.getProxyIp()
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       const config = await configs.findOne({ ip: proxyIP.ip })
@@ -212,6 +213,18 @@ class ConfigsDAO {
 
     } catch (e) {
       console.error(e)
+      const conn = await ConfigsDAO.getDb().connect()
+      const configs = await conn.db('test').collection('configs')
+      const config = { address: 'failed to fetch' }
+      const proxyIp = { ip: 'failed to fetch' }
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const all = {
+        proxyIP: proxyIp,
+        localIP: localIP,
+        config: config,
+        configElse: configAll
+      }
+      return all
     }
     
   }
