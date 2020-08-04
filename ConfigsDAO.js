@@ -1,6 +1,7 @@
 require('dotenv').config()
 const { MongoClient } = require('mongodb')
 const fetch = require('node-fetch')
+const fs = require('fs');
 
 class ConfigsDAO {
   static async getAlienIp () {
@@ -227,6 +228,31 @@ class ConfigsDAO {
       return all
     }
     
+  }
+
+  static async alterOutbound (_, arg) {
+    try {
+      const fileName = process.env.V2RAY_CONFIG_DIR || '/etc/v2ray/config.json';
+      const file = require(fileName);
+      const addressToAlter = arg.address
+      file.outbounds[0].settings.vnext[0].address = addressToAlter;
+      fs.writeFile(fileName, JSON.stringify(file, null, 2), function writeJSON(err) {
+        if (err) return console.log(err);
+      });
+      const addressAlteredResponse = {
+        address: addressToAlter,
+        success: true
+      } 
+      console.log(JSON.stringify(file, null, 2));
+      console.log('writing to ' + fileName);
+      return addressAlteredResponse
+    } catch (e) {
+      console.error(e)
+      return { 
+        error: e, 
+        success: false 
+      }
+    }
   }
 }
 
