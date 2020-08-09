@@ -62,7 +62,7 @@ class ConfigsDAO {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       // const myString = await users.find({}, {email:1}).toArray();
-      const config = await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const config = await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
       return config
     } catch (e) {
       console.error(e)
@@ -122,13 +122,14 @@ class ConfigsDAO {
         'Content-Type': 'application/json'
       }
       const zoneId = process.env.DNS_ZONE_ID
-      const api = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`
+      const api = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?per_page=100`
       const updateFromCloudFlare = await fetch(api, { method: 'GET', headers: headers })
         .then(res => res.text())
         .then(res => JSON.parse(res))
         .then(res => res.result)
 
       const itemsArray = Array.from(updateFromCloudFlare)
+      console.log(itemsArray)
 
       await Promise.all(itemsArray.map(obj => configs.updateMany({ name: obj.name },
           {
@@ -201,7 +202,7 @@ class ConfigsDAO {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       const config = await configs.findOne({ ip: proxyIP.ip })
-      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
       const configElse = configAll.filter(obj => obj.id!==config.id)
       const all = {
         proxyIP: proxyIP,
@@ -218,7 +219,7 @@ class ConfigsDAO {
       const configs = await conn.db('test').collection('configs')
       const config = { address: 'failed to fetch' }
       const proxyIp = { ip: 'failed to fetch' }
-      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
       const all = {
         proxyIP: proxyIp,
         localIP: localIP,
