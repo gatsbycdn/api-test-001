@@ -14,26 +14,42 @@ class ConfigsDAO {
   }
 
   static async getProxyIp () {
-    const apiURI = 'https://www.cloudflare.com/cdn-cgi/trace'
-    const jsonText = await fetch(apiURI, { method: 'GET' })
-    .then(res => res.text())
-    .then(res => res.split('\n').join('",\n"'))
-    .then(res => res.split('=').join('":"'))
-    .then(res => res.slice(0,res.length-3))
-    .then(res => '{"' + res + '}')
-    .then(res => JSON.parse(res))
-    console.log(jsonText)
-    return jsonText
+    try {
+      const apiURI = 'https://www.cloudflare.com/cdn-cgi/trace'
+      const jsonText = await fetch(apiURI, { method: 'GET' })
+      .then(res => res.text())
+      .then(res => res.split('\n').join('",\n"'))
+      .then(res => res.split('=').join('":"'))
+      .then(res => res.slice(0,res.length-3))
+      .then(res => '{"' + res + '}')
+      .then(res => JSON.parse(res))
+      console.log(jsonText)
+      return jsonText
+    } catch(e) {
+      console.log(e)
+      return {
+        ip: "null",
+        loc: "failed to fetch: getProxyIp"
+      }
+    }
   }
 
   static async getEarthIp () {
-    const apiURI = 'http://pv.sohu.com/cityjson?ie=utf-8'
-    const earthIp = await fetch(apiURI, { method: 'GET' })
-      .then(res => res.text())
-      .then(res => res.slice(0, -1))
-      .then(res => res.split('=')[1])
-      .then(res => JSON.parse(res))
-    return earthIp
+    try {
+      const apiURI = 'http://pv.sohu.com/cityjson?ie=utf-8'
+      const earthIp = await fetch(apiURI, { method: 'GET' })
+        .then(res => res.text())
+        .then(res => res.slice(0, -1))
+        .then(res => res.split('=')[1])
+        .then(res => JSON.parse(res))
+      return earthIp
+    } catch(e) {
+      console.log(e)
+      return {
+        cname: 'failed to fetch: getEarthIp',
+        cip: 'null'
+      }
+    }
   }
 
   static getDb () {
@@ -202,7 +218,7 @@ class ConfigsDAO {
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
       const config = await configs.findOne({ ip: proxyIP.ip })
-      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
       const configElse = configAll.filter(obj => obj.id!==config.id)
       const all = {
         proxyIP: proxyIP,
