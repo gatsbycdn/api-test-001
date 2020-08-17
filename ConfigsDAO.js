@@ -156,7 +156,8 @@ class ConfigsDAO {
                 vid: process.env.V2RAY_VID,
                 alterId: '32',
                 path: process.env.V2RAY_PATH,
-                ps: obj.name.split('.')[0]
+                ps: obj.name.split('.')[0],
+                status: 'unknown'
               },
             $setOnInsert:
               {
