@@ -12,6 +12,7 @@ const typeDefs = gql`
     ps: String
     type: String
     vid: String
+    status: String
   }
 
   type EarthIp {
