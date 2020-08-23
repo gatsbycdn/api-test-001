@@ -302,6 +302,4 @@ class ConfigsDAO {
 
 module.exports = { ConfigsDAO: ConfigsDAO }
 
-ConfigsDAO.tisu()
-
 // init mongodb db.configs.createIndex({"id":1},{ unique: true })
