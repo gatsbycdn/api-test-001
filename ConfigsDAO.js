@@ -272,8 +272,34 @@ class ConfigsDAO {
       }
     }
   }
+
+  static async tisu() {
+    try {
+      fetch("https://tisu-api.speedtest.cn/api/v2/speedup/reopen?source=www", {
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "accept-language": "en-US,en;q=0.9",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "same-site",
+          "x-csrf-token": "",
+          "x-requested-with": "XMLHttpRequest",
+          "cookie": "_ga=GA1.2.667675721.1596437884; UM_distinctid=173b31cec0445b-0ea8560860caa-3323765-e1000-173b31cec057e7; __gads=ID=b2cb1ff6d0ab990e:T=1597990683:S=ALNI_MbhF99yehzRL30K4KJNDIE1isxUdA; Hm_lvt_8decfd249e4c816635a72c825e27da1a=1597990684; _gid=GA1.2.1681173685.1598149396; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6Ik15d2EwMkJMUXdTQ29RUThXd0QxMlE9PSIsInZhbHVlIjoiSEc2RWVpdkdFdXNQT1J2YmdKNXkwMHQzWGx3ODJUN1U3QmJVVWwrS3ludjZhWXNVQjRcL1d6YlwvU1hpN0NUS3ZCdGtoUHc1Y2YxMCtUSlJqXC8zRWw4YnNPMUUxK1NpRlBcL05jMExFRTFhUjQwPSIsIm1hYyI6IjgxMzI1NzFkYTQ3ZjVhMmUxMmE3N2EyYzk5NDdhN2EyZGRjOWZmZGY3OGNhYzhjNjhkNTIzODBkZDY5YzEwZGEifQ%3D%3D; Hm_lpvt_8decfd249e4c816635a72c825e27da1a=1598179700; laravel_token=eyJpdiI6ImpzUWVNWUFpVG5EQ2FPM2JsOWI3UUE9PSIsInZhbHVlIjoiZVFrTlR5c1wvNVVIQkorNFBpTkp4VnBGZEhqYW40dFBEUWtiTVRIVVwvcDNoSEl3Tk9aamxVblQ0RmFadDhaSFNqcCtIaVwvRTRGb0ZRU0l4ZzYzWU5cLytSZzg0MjRLV0Z6MlVxT3hJbkVsMTQwUkZjMElUYzNpblpDcUpZNktvZDkrMVA5dTZ0ak5lUXlMTGNkUGNSVWhYUUVlQnBKRlJXb0xOb2RibDY4RlFWWWlWQlVSemtrMHowN3pwYlpWcGhjZ25ONGM4cFhEeG1POEhPMERoM3A3NDNJS0hOdWsyY3dcL0F1eExGXC9HZFhZcVpxOXFVUUI0djhqSGttNU5FNTRzdmg1M1o3dUhEVDh0VTluaUV3bUdjT2c9PSIsIm1hYyI6ImZkMmNkODY2ODQwMDlhNmEyZmJhMGVkMWNlODhjNGU1ZmVkNjU3MmU5NWIwYWE3NTg0NTE2Y2Q4NWUyZmZlMWQifQ%3D%3D; speedtest_session=eyJpdiI6ImN4dU5Eb2J6em5Oc0tQNGxodjVRaVE9PSIsInZhbHVlIjoiOVV4VFdCVjVaT2c5cmxJbWhWRlNGc3B1QjNGek5na1RKd2JJTXFyQ2xlUTc0b0lvNytjYWFaQnB0UDQwYXJYUCIsIm1hYyI6IjQ5MDAwMjEwODg0NjU0MTg0MTdlOWQyMTE2MGY2NTgyYjk3YjNjYjAyNmE5NmI0Njg4YmVmNGFjMWM5MmQzZjAifQ%3D%3D"
+        },
+        "referrer": "https://www.speedtest.cn/",
+        "referrerPolicy": "no-referrer-when-downgrade",
+        "body": null,
+        "method": "GET",
+        "mode": "cors"
+      })      
+    } catch (error) {
+      
+    }
+  }
 }
 
 module.exports = { ConfigsDAO: ConfigsDAO }
+
+
 
 // init mongodb db.configs.createIndex({"id":1},{ unique: true })
