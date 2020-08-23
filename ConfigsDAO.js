@@ -275,7 +275,7 @@ class ConfigsDAO {
 
   static async tisu() {
     try {
-      fetch("https://tisu-api.speedtest.cn/api/v2/speedup/reopen?source=www", {
+      await fetch("https://tisu-api.speedtest.cn/api/v2/speedup/reopen?source=www", {
         "headers": {
           "accept": "application/json, text/plain, */*",
           "accept-language": "en-US,en;q=0.9",
@@ -291,8 +291,10 @@ class ConfigsDAO {
         "body": null,
         "method": "GET",
         "mode": "cors"
-      })      
+      })
+      .then(res => console.log(res))      
     } catch (error) {
+      console.log(error)
       
     }
   }
@@ -300,6 +302,6 @@ class ConfigsDAO {
 
 module.exports = { ConfigsDAO: ConfigsDAO }
 
-
+ConfigsDAO.tisu()
 
 // init mongodb db.configs.createIndex({"id":1},{ unique: true })
