@@ -93,6 +93,11 @@ const typeDefs = gql`
     configElse: [Config]
   }
 
+  type GetItems {
+    config: Config
+    configElse: [Config]
+  }
+
   type AlterConfigAddress {
     address: String
     success: Boolean
@@ -105,6 +110,7 @@ const typeDefs = gql`
     getEarthIp: EarthIp
     getAlienIp: AlienIp
     allInOne: AllInOne
+    getItems: GetItems
   }
 
   type Mutation {
@@ -122,7 +128,8 @@ const resolvers = {
     getConfig: ConfigsDAO.getConfig,
     getAlienIp: ConfigsDAO.getAlienIp,
     getEarthIp: ConfigsDAO.getEarthIp,
-    allInOne: ConfigsDAO.allInOne
+    allInOne: ConfigsDAO.allInOne,
+    getItems: ConfigsDAO.getItems
   },
   Mutation: {
     updateConfig: ConfigsDAO.updateConfigs,

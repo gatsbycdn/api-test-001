@@ -85,6 +85,36 @@ class ConfigsDAO {
     }
   }
 
+  static async getV2Config () {
+    try {
+      const fileName = process.env.V2RAY_CONFIG_DIR || '/etc/v2ray/config.json'
+      const file = require(fileName)
+      const v2Address = file.outbounds[0].settings.vnext[0].address
+      console.log(v2Address)
+      return v2Address
+    } catch (error) {
+      console.error(e)
+    }
+  }
+
+  static async getItems () {
+    try {
+      const configs = await ConfigsDAO.listConfig()
+      const v2Address = await ConfigsDAO.getV2Config()
+      const config = await configs.findOne({ address: v2Address })
+      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
+      const configElse = configAll.filter(obj => obj.id!==config.id)
+      const all = {
+        config: config,
+        configElse: configElse
+      }
+      console.log(all)
+      return all
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   static async deleteOneConfig (_, arg) {
     try {
       const conn = await ConfigsDAO.getDb().connect()
@@ -218,7 +248,8 @@ class ConfigsDAO {
       const proxyIP = await ConfigsDAO.getProxyIp()
       const conn = await ConfigsDAO.getDb().connect()
       const configs = await conn.db('test').collection('configs')
-      const config = await configs.findOne({ ip: proxyIP.ip })
+      const v2Address = await ConfigsDAO.getV2Config()
+      const config = await configs.findOne({ address: v2Address })
       const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
       const configElse = configAll.filter(obj => obj.id!==config.id)
       const all = {
@@ -302,4 +333,5 @@ class ConfigsDAO {
 
 module.exports = { ConfigsDAO: ConfigsDAO }
 
+// ConfigsDAO.getV2Config()
 // init mongodb db.configs.createIndex({"id":1},{ unique: true })
