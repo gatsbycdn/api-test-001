@@ -1,9 +1,23 @@
 require('dotenv').config()
-const { MongoClient } = require('mongodb')
 const fetch = require('node-fetch')
 const fs = require('fs');
 
+let configs
+
 class ConfigsDAO {
+
+  static async injectDB(conn) {
+    if (configs) {
+      return
+    }
+    try {
+      configs = await conn.db('test').collection('configs')
+    } catch (error) {
+      console.error(`Unable to establish collection handles in userDAO: ${e}`)
+    }
+
+  }
+
   static async getAlienIp () {
     const apiURI = 'https://api.ipify.org'
     const alienIp = await fetch(apiURI, { method: 'GET' })
@@ -52,20 +66,8 @@ class ConfigsDAO {
     }
   }
 
-  static getDb () {
-    const url = process.env.LOCAL_DB_URI || 'mongodb://localhost:27017'
-    const client = new MongoClient(
-      url,
-      { useNewUrlParser: true, useUnifiedTopology: true },
-      { poolSize: 50, w: 1, wtimeout: 2500 }
-    )
-    return client
-  }
-
   static async getConfig (_, arg) {
     try {
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       const config = await configs.findOne({ ip: arg.ip })
       return config
     } catch (e) {
@@ -75,9 +77,6 @@ class ConfigsDAO {
 
   static async listConfig () {
     try {
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
-      // const myString = await users.find({}, {email:1}).toArray();
       const config = await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
       return config
     } catch (e) {
@@ -99,8 +98,6 @@ class ConfigsDAO {
 
   static async getItems () {
     try {
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       const v2Address = await ConfigsDAO.getV2Config()
       const config = await configs.findOne({ address: v2Address })
       const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
@@ -118,8 +115,6 @@ class ConfigsDAO {
 
   static async deleteOneConfig (_, arg) {
     try {
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       console.log(arg)
       const deleteResult = await configs.deleteOne({ id: arg.id })
       const returnResult = {
@@ -160,8 +155,6 @@ class ConfigsDAO {
 
   static async updateConfigs () {
     try {
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       await configs.deleteMany({})
       await configs.createIndex({"id":1},{ unique: true })
       const headers = {
@@ -246,9 +239,6 @@ class ConfigsDAO {
     const localIP = await ConfigsDAO.getEarthIp()
 
     try {
-      const proxyIP = await ConfigsDAO.getProxyIp()
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       const v2Address = await ConfigsDAO.getV2Config()
       const config = await configs.findOne({ address: v2Address })
       const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
@@ -264,8 +254,6 @@ class ConfigsDAO {
 
     } catch (e) {
       console.error(e)
-      const conn = await ConfigsDAO.getDb().connect()
-      const configs = await conn.db('test').collection('configs')
       const config = { address: 'failed to fetch' }
       const proxyIp = { ip: 'failed to fetch' }
       const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()

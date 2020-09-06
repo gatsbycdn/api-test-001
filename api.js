@@ -1,5 +1,6 @@
 const { ApolloServer, gql } = require('apollo-server')
 const { ConfigsDAO } = require('./ConfigsDAO.js')
+const { MongoClient } = require('mongodb')
 
 const typeDefs = gql`
   type Config {
@@ -145,8 +146,22 @@ const server = new ApolloServer({
   resolvers
 })
 
-server.listen().then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`)
-})
+const uri = process.env.LOCAL_DB_URI || 'mongodb://localhost:27017'
+MongoClient.connect(
+    uri,
+        { useNewUrlParser: true, useUnifiedTopology: true },
+        { poolSize: 50, w: 1, wtimeout: 2500 }
+    )
+    .catch(err => {
+      console.error(err.stack)
+      process.exit(1)
+    })
+    .then(async client => {
+      await ConfigsDAO.injectDB(client)
+      server.listen().then(({ url }) => {
+      console.log(`🚀  Server ready at ${url}`)
+    })
+    })
+
 
 
