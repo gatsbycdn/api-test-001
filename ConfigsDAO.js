@@ -99,7 +99,8 @@ class ConfigsDAO {
 
   static async getItems () {
     try {
-      const configs = await ConfigsDAO.listConfig()
+      const conn = await ConfigsDAO.getDb().connect()
+      const configs = await conn.db('test').collection('configs')
       const v2Address = await ConfigsDAO.getV2Config()
       const config = await configs.findOne({ address: v2Address })
       const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
