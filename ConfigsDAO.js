@@ -235,7 +235,7 @@ class ConfigsDAO {
   }  
   
   static async allInOne () {
-    
+    const proxyIP = await ConfigsDAO.getProxyIp()
     const localIP = await ConfigsDAO.getEarthIp()
 
     try {
