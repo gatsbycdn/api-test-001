@@ -22,7 +22,7 @@ class ConfigsDAO {
     const alienIp = await fetch(apiURI, { method: 'GET' })
       .then(res => res.text())
       .then(res => ({ ip: res }))
-    console.log(alienIp)
+    //console.log(alienIp)
     return alienIp
   }
 
@@ -36,7 +36,7 @@ class ConfigsDAO {
       .then(res => res.slice(0,res.length-3))
       .then(res => '{"' + res + '}')
       .then(res => JSON.parse(res))
-      console.log(jsonText)
+      //console.log(jsonText)
       return jsonText
     } catch(e) {
       console.log(e)
@@ -88,7 +88,7 @@ class ConfigsDAO {
       const fileName = process.env.V2RAY_CONFIG_DIR || '/etc/v2ray/config.json'
       const file = require(fileName)
       const v2Address = file.outbounds[0].settings.vnext[0].address
-      console.log(v2Address)
+      //console.log(v2Address)
       return v2Address
     } catch (error) {
       console.error(e)
@@ -114,14 +114,14 @@ class ConfigsDAO {
 
   static async deleteOneConfig (_, arg) {
     try {
-      console.log(arg)
+      //console.log(arg)
       const deleteResult = await configs.deleteOne({ id: arg.id })
       const returnResult = {
         result: deleteResult.result,
         id: arg.id,
         deletedCount: deleteResult.deletedCount
       }
-      console.log(returnResult)
+      //console.log(returnResult)
       return returnResult
     } catch (e) {
       console.error(e)
@@ -142,7 +142,7 @@ class ConfigsDAO {
       })
       .then(res => res.text())
       .then(res => JSON.parse(res))
-      console.log(removeResult)
+      //console.log(removeResult)
 
       return removeResult
 
@@ -240,12 +240,13 @@ class ConfigsDAO {
            })
           }
         })
+        .then(res => ({success: true}))
         /*.then(res => {
           console.log(res)
           console.log(typeof(res.result.created_on))
           res.success
         })*/
-      console.log(cloudFlareApiCallback)
+      //console.log(cloudFlareApiCallback)
       return cloudFlareApiCallback
     } catch (e) {
       console.error(e)
