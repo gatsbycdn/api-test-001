@@ -15,7 +15,6 @@ class ConfigsDAO {
     } catch (error) {
       console.error(`Unable to establish collection handles in userDAO: ${e}`)
     }
-
   }
 
   static async getAlienIp () {
@@ -106,7 +105,7 @@ class ConfigsDAO {
         config: config,
         configElse: configElse
       }
-      console.log(all)
+      //console.log(all)
       return all
     } catch (error) {
       console.log(error)
@@ -155,7 +154,7 @@ class ConfigsDAO {
 
   static async updateConfigs () {
     try {
-      await configs.deleteMany({})
+      //await configs.deleteMany({})
       await configs.createIndex({"id":1},{ unique: true })
       const headers = {
         Authorization: `Bearer ${process.env.DNS_BEARER}`,
@@ -169,7 +168,7 @@ class ConfigsDAO {
         .then(res => res.result)
 
       const itemsArray = Array.from(updateFromCloudFlare)
-      console.log(itemsArray)
+      //console.log(itemsArray)
 
       await Promise.all(itemsArray.map(obj => configs.updateMany({ name: obj.name },
           {
@@ -221,6 +220,26 @@ class ConfigsDAO {
       const cloudFlareApiCallback = await fetch(baseAPI, { method: 'post', headers: headers, body: JSON.stringify(params) })
         .then(res => res.text())
         .then(res => JSON.parse(res))
+        .then(res => ({...res, id: res.result.id}))
+        .then(res => {
+          if (res.success) {
+            configs.updateOne({ name: res.result.name }, { $set: {
+              type: res.result.type,
+              ip: res.result.content,
+              vid: process.env.V2RAY_VID,
+              alterId: '32',
+              path: process.env.V2RAY_PATH,
+              ps: res.result.name.split('.')[0],
+              status: 'unknown'
+            }, $setOnInsert: {
+              id: res.id,
+              address: res.result.name
+            }}, { upsert: true }, function(err, result) {
+              if (err) throw err;
+              console.log(result.result)
+           })
+          }
+        })
         /*.then(res => {
           console.log(res)
           console.log(typeof(res.result.created_on))
@@ -249,7 +268,7 @@ class ConfigsDAO {
         config: config,
         configElse: configElse
       }
-      console.log(all)
+      //console.log(all)
       return all
 
     } catch (e) {
@@ -281,8 +300,8 @@ class ConfigsDAO {
         address: addressToAlter,
         success: true
       } 
-      console.log(JSON.stringify(file, null, 2));
-      console.log('writing to ' + fileName);
+      //console.log(JSON.stringify(file, null, 2));
+      //console.log('writing to ' + fileName);
       return addressAlteredResponse
     } catch (e) {
       console.error(e)

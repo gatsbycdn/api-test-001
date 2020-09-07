@@ -85,6 +85,7 @@ const typeDefs = gql`
     result: CloudFlareResult
     success: Boolean
     errors: [AddDNSError]
+    id: String
   }
 
   type AllInOne {
