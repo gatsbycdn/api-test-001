@@ -1,8 +1,10 @@
 require('dotenv').config()
 const fetch = require('node-fetch')
-const fs = require('fs');
+const got = require('got')
+const fs = require('fs')
 
 let configs
+
 
 class ConfigsDAO {
 
@@ -64,6 +66,40 @@ class ConfigsDAO {
       }
     }
   }
+
+  static async gotDomesticIp() {
+    try {
+      let ip, loc, isp
+      const apiURI = 'https://myip.ipip.net'
+      const options = {
+          url: apiURI,
+          //timeout: 1500,
+          retry: 2,
+          headers: {
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "accept-language": "en-US,en;q=0.9",
+              "cache-control": "max-age=0",
+              "upgrade-insecure-requests": "1",
+              "cookie": "_ga=GA1.2.1315785073.1598451232; Hm_lvt_6b4a9140aed51e46402f36e099e37baf=1598620223; __cfduid=d900500f9854ad418ab049889f065d4881599618296; LOVEAPP_SESSID=f720979ec23bf9c34739b2ad8bf7215975820373; __jsluid_h=16534192e04843e5d69f39840df6b2a0"
+          }
+      }
+      const response = await got(options)
+      .then(res => res.body)
+      .then(res => {
+          ip = res.split(' ')[1].split('：')[1]
+          loc = res.split(' ').slice(3,6).join('').split('：')[1]
+          isp = res.split(' ')[7].replace('\n','')
+          return({
+              ip: ip,
+              loc: loc,
+              isp: isp
+          })
+      })
+      return response
+  } catch (error) {
+      console.log(error)
+  }}
+
 
   static async getConfig (_, arg) {
     try {
@@ -252,11 +288,32 @@ class ConfigsDAO {
       console.error(e)
       return { error: e }
     }
-  }  
+  }
+  
+  static async ipInfo () {
+    const proxyIP = await ConfigsDAO.getProxyIp()
+    const localIP = await ConfigsDAO.gotDomesticIp()
+
+    try {
+      const v2Address = await ConfigsDAO.getV2Config()
+      const all = {
+        proxyIP: proxyIP,
+        localIP: localIP,
+        v2Address: v2Address
+      }
+      //console.log(all)
+      return all
+    } catch (e) {
+      console.log(e)
+      return null
+    }
+    
+  }
   
   static async allInOne () {
     const proxyIP = await ConfigsDAO.getProxyIp()
-    const localIP = await ConfigsDAO.getEarthIp()
+    //const localIP = await ConfigsDAO.getEarthIp()
+    const localIP = await ConfigsDAO.gotDomesticIp()
 
     try {
       const v2Address = await ConfigsDAO.getV2Config()

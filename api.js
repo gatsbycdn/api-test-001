@@ -22,6 +22,12 @@ const typeDefs = gql`
     cname: String
   }
 
+  type DomesticIp {
+    ip: String
+    loc: String
+    isp: String
+  }
+
   type AlienIp {
     ip: String
   }
@@ -95,6 +101,12 @@ const typeDefs = gql`
     configElse: [Config]
   }
 
+  type IpInfo {
+    proxyIP: ProxyIp
+    localIP: DomesticIp
+    v2Address: String
+  }
+
   type GetItems {
     config: Config
     configElse: [Config]
@@ -113,6 +125,7 @@ const typeDefs = gql`
     getAlienIp: AlienIp
     allInOne: AllInOne
     getItems: GetItems
+    ipInfo: IpInfo
   }
 
   type Mutation {
@@ -131,7 +144,8 @@ const resolvers = {
     getAlienIp: ConfigsDAO.getAlienIp,
     getEarthIp: ConfigsDAO.getEarthIp,
     allInOne: ConfigsDAO.allInOne,
-    getItems: ConfigsDAO.getItems
+    getItems: ConfigsDAO.getItems,
+    ipInfo: ConfigsDAO.ipInfo
   },
   Mutation: {
     updateConfig: ConfigsDAO.updateConfigs,

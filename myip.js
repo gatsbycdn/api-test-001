@@ -1,7 +1,6 @@
 const fetch = require('node-fetch')
 const got = require('got')
 const tunnel = require('tunnel')
-const { HttpProxyAgent } = require('hpagent');
 
 let ip, loc, isp
 
@@ -76,18 +75,12 @@ async function gotIpApi() {
     try {
         const tunnelingAgent = tunnel.httpOverHttp({
             proxy: {
-                host: '192.168.10.2',
-                port: 10808,
-                proxyAuth: 'proxy:proxy'
+                host: '192.168.2.1',
+                port: 10808
             }
         })
-        const hpagent = new HttpProxyAgent({
-            keepAlive: true,
-            keepAliveMsecs: 1000,
-            maxSockets: 256,
-            maxFreeSockets: 256,
-            proxy: 'http://proxy:proxy@192.168.10.2:10808'
-        })
+
+        //const api = 'http://google.com'
         const api = 'http://ip-api.com/json/'
         //const api = 'http://api.ipstack.com/'
         //const api = 'http://baidu.com'
@@ -96,12 +89,12 @@ async function gotIpApi() {
             url: api, // + 'check?access_key=' + apiKey,
             retry: 2,
             agent: {
-                http: hpagent
+                http: tunnelingAgent
             }
         }
         const jsonText = await got(options)
         .then(res => res.body)
-        .then(res => JSON.parse(res))
+//        .then(res => JSON.parse(res))
         return jsonText
     } catch (error) {
         console.log(error)
@@ -123,4 +116,3 @@ async function ipApi() {
 //    .then(res => console.log(res))
 const b = gotIpApi()
 .then(res => console.log(res))
-
