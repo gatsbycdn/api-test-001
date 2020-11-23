@@ -347,7 +347,7 @@ class ConfigsDAO {
 
   static async alterOutbound (_, arg) {
     try {
-      const fileName = process.env.V2RAY_CONFIG_DIR || '/etc/v2ray/config.json';
+      const fileName = process.env.V2RAY_CONFIG_DIR || '/usr/local/etc/v2ray/config.json';
       const file = require(fileName);
       const addressToAlter = arg.address
       file.outbounds[0].settings.vnext[0].address = addressToAlter;
