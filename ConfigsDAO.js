@@ -121,7 +121,7 @@ class ConfigsDAO {
 
   static async getV2Config () {
     try {
-      const fileName = process.env.V2RAY_CONFIG_DIR || '/etc/v2ray/config.json'
+      const fileName = process.env.V2RAY_CONFIG_DIR || '/usr/local/etc/v2ray/config.json'
       const file = require(fileName)
       const v2Address = file.outbounds[0].settings.vnext[0].address
       //console.log(v2Address)
