@@ -228,9 +228,7 @@ class ConfigsDAO {
             if (err) throw err;
             console.log(result.upsertedCount)
          })))
-
-      //console.log(commandResult)
-
+      ////console.log(commandResult)
       return updateFromCloudFlare
     } catch (e) {
       console.error(e)
@@ -393,6 +391,54 @@ class ConfigsDAO {
     } catch (error) {
       console.log(error)
       
+    }
+  }
+
+  static async testGot (hostname) {
+    try {
+    const options = {
+        url: "https://" + hostname,
+        //timeout: 1500,
+        retry: 2
+    }
+    const response = await got(options)
+    //console.log(response.statusMessage)
+    //console.log(response.statusCode)
+    return response.statusCode
+    } catch (error) {
+    console.log(error.response)
+    return error
+    }
+}
+
+  static async getHostname () {
+    try {
+      const config = await configs.find({ type: 'A' }, { name: 1, _id: 0 }).limit(50).toArray()
+      let newConfig = await config
+      .filter( obj => isNaN(Number(obj['name'].slice(1,3))) === false )
+      .map(dict => dict['name'])
+      console.log(newConfig)
+      return newConfig
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  static async updateStatus () {
+    try {
+      const hostNames = await Promise.all((await ConfigsDAO.getHostname()).map(
+        async (hostname) => {
+            console.log(hostname)
+            let status = (await ConfigsDAO.testGot(hostname) === 200) ? 'online' : 'offline'
+            console.log(status)
+            configs.findOneAndUpdate({name:hostname},{$set:{status:status}})
+            }
+          )).then(res => res)
+      console.log(hostNames)
+      return {success: true}
+    } catch (error) {
+    console.log(error)
+    return {error: error}
     }
   }
 }

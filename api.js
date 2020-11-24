@@ -118,6 +118,11 @@ const typeDefs = gql`
     error: String
   }
 
+  type StatusResult {
+    success: Boolean
+    error: String
+  }
+
   type Query {
     listConfig: [Config]
     getConfig(ip: String): Config
@@ -134,6 +139,7 @@ const typeDefs = gql`
     removeDNSRecord(id: String): RemoveResponse
     addDNSRecord(ps: String, ip: String): CloudFlareApi
     alterAddress(address: String): AlterConfigAddress
+    updateStatus: StatusResult
   }
 `
 
@@ -152,7 +158,8 @@ const resolvers = {
     deleteConfig: ConfigsDAO.deleteOneConfig,
     removeDNSRecord: ConfigsDAO.removeOneDNSRecord,
     addDNSRecord: ConfigsDAO.addDNSRecord,
-    alterAddress: ConfigsDAO.alterOutbound
+    alterAddress: ConfigsDAO.alterOutbound,
+    updateStatus: ConfigsDAO.updateStatus
   }
 }
 
