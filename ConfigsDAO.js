@@ -404,6 +404,7 @@ class ConfigsDAO {
     const response = await got(options)
     //console.log(response.statusMessage)
     //console.log(response.statusCode)
+    //console.log(response.statusCode)
     return response.statusCode
     } catch (error) {
     console.log(error.response)
@@ -415,7 +416,7 @@ class ConfigsDAO {
     try {
       const config = await configs.find({ type: 'A' }, { name: 1, _id: 0 }).limit(50).toArray()
       let newConfig = await config
-      .filter( obj => isNaN(Number(obj['name'].slice(1,3))) === false )
+      //.filter( obj => isNaN(Number(obj['name'].slice(1,3))) === false )
       .map(dict => dict['name'])
       console.log(newConfig)
       return newConfig
