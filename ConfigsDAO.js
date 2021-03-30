@@ -123,7 +123,7 @@ class ConfigsDAO {
     try {
       const fileName = process.env.V2RAY_CONFIG_DIR || '/usr/local/etc/v2ray/config.json'
       const file = require(fileName)
-      const v2Address = file.outbounds[0].settings.vnext[0].address
+      const v2Address = file.outbounds[0].streamSettings.tlsSettings.serverName
       //console.log(v2Address)
       return v2Address
     } catch (error) {
@@ -348,7 +348,16 @@ class ConfigsDAO {
       const fileName = process.env.V2RAY_CONFIG_DIR || '/usr/local/etc/v2ray/config.json';
       const file = require(fileName);
       const addressToAlter = arg.address
-      file.outbounds[0].settings.vnext[0].address = addressToAlter;
+      const last2 = addressToAlter.split('.')[0].slice(-2)
+      if (last2 == "cf") {
+        file.outbounds[0].settings.vnext[0].address = addressToAlter;
+        file.outbounds[0].streamSettings.tlsSettings.serverName = addressToAlter;
+        file.outbounds[0].streamSettings.wsSettings.headers.Host = addressToAlter;
+      } else {
+        file.outbounds[0].settings.vnext[0].address = addressToAlter;
+        file.outbounds[0].streamSettings.tlsSettings.serverName = addressToAlter;
+        file.outbounds[0].streamSettings.wsSettings.headers.Host = addressToAlter;
+      }
       fs.writeFile(fileName, JSON.stringify(file, null, 2), function writeJSON(err) {
         if (err) return console.log(err);
       });
@@ -442,6 +451,29 @@ class ConfigsDAO {
     return {error: error}
     }
   }
+
+  static async printTest (address) {
+    try {
+
+      const addressToAlter = address
+      const last2 = addressToAlter.split('.')[0].slice(-2)
+
+      if (last2 == "cf") { console.log("True")}
+      else console.log("False")
+
+      //console.log(JSON.stringify(file, null, 2));
+      //console.log('writing to ' + fileName);
+
+    } catch (e) {
+      console.error(e)
+      return { 
+        error: e, 
+        success: false 
+      }
+    }
+  }
+
+
 }
 
 module.exports = { ConfigsDAO: ConfigsDAO }
