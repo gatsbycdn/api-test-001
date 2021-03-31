@@ -3,3 +3,5 @@ const { ConfigsDAO } = require('./ConfigsDAO.js')
 //ConfigsDAO.getIp();
 //ConfigsDAO.allInOne(); 
 ConfigsDAO.printTest("103-16-231-172-tele-hk-fanlingcf.gatsbycdn.com")
+//ConfigsDAO.updateStatusOne("103-16-231-172-tele-hk-fanlingcf")
+

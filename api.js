@@ -6,14 +6,12 @@ const typeDefs = gql`
   type Config {
     name: String
     address: String
-    alterId: String
     id: String
     ip: String
-    path: String
     ps: String
     type: String
-    vid: String
     status: String
+    proxied: Boolean
   }
 
   type EarthIp {
@@ -88,17 +86,10 @@ const typeDefs = gql`
   }
 
   type CloudFlareApi {
+    id: String
     result: CloudFlareResult
     success: Boolean
     errors: [AddDNSError]
-    id: String
-  }
-
-  type AllInOne {
-    proxyIP: ProxyIp
-    localIP: EarthIp
-    config: Config
-    configElse: [Config]
   }
 
   type IpInfo {
@@ -123,23 +114,30 @@ const typeDefs = gql`
     error: String
   }
 
+  type ProxyResult {
+    success: Boolean
+    error: String
+  }
+
   type Query {
     listConfig: [Config]
     getConfig(ip: String): Config
     getEarthIp: EarthIp
     getAlienIp: AlienIp
-    allInOne: AllInOne
     getItems: GetItems
     ipInfo: IpInfo
+    findOneById(id: String): Config
   }
 
   type Mutation {
     updateConfig: [CloudFlareResult]
     deleteConfig(id: String): DeleteCommandResult
     removeDNSRecord(id: String): RemoveResponse
-    addDNSRecord(ps: String, ip: String): CloudFlareApi
+    addDNSRecord(ps: String, ip: String): Config
     alterAddress(address: String): AlterConfigAddress
     updateStatus: StatusResult
+    updateStatusOne(address: String): StatusResult
+    proxify(id: String, proxied: Boolean): Config
   }
 `
 
@@ -149,9 +147,9 @@ const resolvers = {
     getConfig: ConfigsDAO.getConfig,
     getAlienIp: ConfigsDAO.getAlienIp,
     getEarthIp: ConfigsDAO.getEarthIp,
-    allInOne: ConfigsDAO.allInOne,
     getItems: ConfigsDAO.getItems,
-    ipInfo: ConfigsDAO.ipInfo
+    ipInfo: ConfigsDAO.ipInfo,
+    findOneById: ConfigsDAO.findOneById
   },
   Mutation: {
     updateConfig: ConfigsDAO.updateConfigs,
@@ -159,7 +157,9 @@ const resolvers = {
     removeDNSRecord: ConfigsDAO.removeOneDNSRecord,
     addDNSRecord: ConfigsDAO.addDNSRecord,
     alterAddress: ConfigsDAO.alterOutbound,
-    updateStatus: ConfigsDAO.updateStatus
+    updateStatus: ConfigsDAO.updateStatus,
+    updateStatusOne: ConfigsDAO.updateStatusOne,
+    proxify: ConfigsDAO.proxify
   }
 }
 

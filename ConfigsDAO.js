@@ -2,6 +2,7 @@ require('dotenv').config()
 const fetch = require('node-fetch')
 const got = require('got')
 const fs = require('fs')
+const { config } = require('dotenv')
 
 let configs
 
@@ -212,11 +213,9 @@ class ConfigsDAO {
               {
                 type: obj.type,
                 ip: obj.content,
-                vid: process.env.V2RAY_VID,
-                alterId: '32',
-                path: process.env.V2RAY_PATH,
                 ps: obj.name.split('.')[0],
-                status: 'unknown'
+                status: 'unknown',
+                proxied: obj.proxied
               },
             $setOnInsert:
               {
@@ -260,28 +259,23 @@ class ConfigsDAO {
             configs.updateOne({ name: res.result.name }, { $set: {
               type: res.result.type,
               ip: res.result.content,
-              vid: process.env.V2RAY_VID,
-              alterId: '32',
-              path: process.env.V2RAY_PATH,
               ps: res.result.name.split('.')[0],
               status: 'unknown'
             }, $setOnInsert: {
-              id: res.id,
+              id: res.result.id,
               address: res.result.name
-            }}, { upsert: true }, function(err, result) {
-              if (err) throw err;
-              console.log(result.result)
-           })
+            }}, { upsert: true })
           }
+          let config = {
+            id: res.result.id,
+            name: res.result.name,
+            address: res.result.name,
+            ip: res.result.content,
+            ps: res.result.name.split('.')[0],
+            proxied: res.result.proxied
+          }
+          return config
         })
-        .then(res => ({success: true}))
-        /*.then(res => {
-          console.log(res)
-          console.log(typeof(res.result.created_on))
-          res.success
-        })*/
-      //console.log(cloudFlareApiCallback)
-      return cloudFlareApiCallback
     } catch (e) {
       console.error(e)
       return { error: e }
@@ -304,41 +298,6 @@ class ConfigsDAO {
     } catch (e) {
       console.log(e)
       return null
-    }
-    
-  }
-  
-  static async allInOne () {
-    const proxyIP = await ConfigsDAO.getProxyIp()
-    //const localIP = await ConfigsDAO.getEarthIp()
-    const localIP = await ConfigsDAO.gotDomesticIp()
-
-    try {
-      const v2Address = await ConfigsDAO.getV2Config()
-      const config = await configs.findOne({ address: v2Address })
-      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).toArray()
-      const configElse = configAll.filter(obj => obj.id!==config.id)
-      const all = {
-        proxyIP: proxyIP,
-        localIP: localIP,
-        config: config,
-        configElse: configElse
-      }
-      //console.log(all)
-      return all
-
-    } catch (e) {
-      console.error(e)
-      const config = { address: 'failed to fetch' }
-      const proxyIp = { ip: 'failed to fetch' }
-      const configAll= await configs.find({ type: 'A' }, { name: 1, content: 1 }).limit(50).toArray()
-      const all = {
-        proxyIP: proxyIp,
-        localIP: localIP,
-        config: config,
-        configElse: configAll
-      }
-      return all
     }
     
   }
@@ -377,32 +336,6 @@ class ConfigsDAO {
     }
   }
 
-  static async tisu() {
-    try {
-      await fetch("https://tisu-api.speedtest.cn/api/v2/speedup/reopen?source=www", {
-        "headers": {
-          "accept": "application/json, text/plain, */*",
-          "accept-language": "en-US,en;q=0.9",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-site",
-          "x-csrf-token": "",
-          "x-requested-with": "XMLHttpRequest",
-          "cookie": "_ga=GA1.2.667675721.1596437884; UM_distinctid=173b31cec0445b-0ea8560860caa-3323765-e1000-173b31cec057e7; __gads=ID=b2cb1ff6d0ab990e:T=1597990683:S=ALNI_MbhF99yehzRL30K4KJNDIE1isxUdA; Hm_lvt_8decfd249e4c816635a72c825e27da1a=1597990684; _gid=GA1.2.1681173685.1598149396; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6Ik15d2EwMkJMUXdTQ29RUThXd0QxMlE9PSIsInZhbHVlIjoiSEc2RWVpdkdFdXNQT1J2YmdKNXkwMHQzWGx3ODJUN1U3QmJVVWwrS3ludjZhWXNVQjRcL1d6YlwvU1hpN0NUS3ZCdGtoUHc1Y2YxMCtUSlJqXC8zRWw4YnNPMUUxK1NpRlBcL05jMExFRTFhUjQwPSIsIm1hYyI6IjgxMzI1NzFkYTQ3ZjVhMmUxMmE3N2EyYzk5NDdhN2EyZGRjOWZmZGY3OGNhYzhjNjhkNTIzODBkZDY5YzEwZGEifQ%3D%3D; Hm_lpvt_8decfd249e4c816635a72c825e27da1a=1598179700; laravel_token=eyJpdiI6ImpzUWVNWUFpVG5EQ2FPM2JsOWI3UUE9PSIsInZhbHVlIjoiZVFrTlR5c1wvNVVIQkorNFBpTkp4VnBGZEhqYW40dFBEUWtiTVRIVVwvcDNoSEl3Tk9aamxVblQ0RmFadDhaSFNqcCtIaVwvRTRGb0ZRU0l4ZzYzWU5cLytSZzg0MjRLV0Z6MlVxT3hJbkVsMTQwUkZjMElUYzNpblpDcUpZNktvZDkrMVA5dTZ0ak5lUXlMTGNkUGNSVWhYUUVlQnBKRlJXb0xOb2RibDY4RlFWWWlWQlVSemtrMHowN3pwYlpWcGhjZ25ONGM4cFhEeG1POEhPMERoM3A3NDNJS0hOdWsyY3dcL0F1eExGXC9HZFhZcVpxOXFVUUI0djhqSGttNU5FNTRzdmg1M1o3dUhEVDh0VTluaUV3bUdjT2c9PSIsIm1hYyI6ImZkMmNkODY2ODQwMDlhNmEyZmJhMGVkMWNlODhjNGU1ZmVkNjU3MmU5NWIwYWE3NTg0NTE2Y2Q4NWUyZmZlMWQifQ%3D%3D; speedtest_session=eyJpdiI6ImN4dU5Eb2J6em5Oc0tQNGxodjVRaVE9PSIsInZhbHVlIjoiOVV4VFdCVjVaT2c5cmxJbWhWRlNGc3B1QjNGek5na1RKd2JJTXFyQ2xlUTc0b0lvNytjYWFaQnB0UDQwYXJYUCIsIm1hYyI6IjQ5MDAwMjEwODg0NjU0MTg0MTdlOWQyMTE2MGY2NTgyYjk3YjNjYjAyNmE5NmI0Njg4YmVmNGFjMWM5MmQzZjAifQ%3D%3D"
-        },
-        "referrer": "https://www.speedtest.cn/",
-        "referrerPolicy": "no-referrer-when-downgrade",
-        "body": null,
-        "method": "GET",
-        "mode": "cors"
-      })
-      .then(res => console.log(res))      
-    } catch (error) {
-      console.log(error)
-      
-    }
-  }
-
   static async testGot (hostname) {
     try {
     const options = {
@@ -417,7 +350,7 @@ class ConfigsDAO {
     return response.statusCode
     } catch (error) {
     console.log(error.response)
-    return error
+    return {error:error}
     }
 }
 
@@ -452,6 +385,18 @@ class ConfigsDAO {
     }
   }
 
+  static async updateStatusOne (_, arg) {
+    try {
+      let hostName = arg.address
+      let status = (await ConfigsDAO.testGot(hostName) === 200) ? 'online' : 'offline'
+      await configs.findOneAndUpdate({name:hostName},{$set:{status:status}})
+      return {success: true}
+    } catch (error) {
+    console.log(error)
+    return {error: error}
+    }
+  }
+
   static async printTest (address) {
     try {
 
@@ -473,6 +418,58 @@ class ConfigsDAO {
     }
   }
 
+  static async findOneById(_, arg) {
+    try {
+      const config = await configs.findOne({ id: arg.id })
+      return config
+    } catch (e) {
+      console.error(e)
+      return { error: e }
+    }
+  }
+
+  static async proxify (_, arg) {
+    try {
+     
+      const headers = {
+        Authorization: `Bearer ${process.env.DNS_WRITE_BEARER}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+      
+      let params = await configs.findOne({id: arg.id})
+      .then(res => ({
+        type: 'A',
+        name: res.ps,
+        content: res.ip,
+        proxied: (!res.proxied),
+        ttl: 120
+      }))
+      console.log(params)
+      const config = await configs.findOneAndUpdate({id:arg.id},{$set:{proxied:arg.proxied}})
+      console.log(config)
+      const baseAPI = `https://api.cloudflare.com/client/v4/zones/${process.env.DNS_ZONE_ID}/dns_records/${arg.id}`
+      const cloudFlareApiCallback = await fetch(baseAPI, { method: 'put', headers: headers, body: JSON.stringify(params)})
+        .then(res => res.text())
+        .then(res => JSON.parse(res))
+        .then(res => ({
+          id: res.result.id,
+          name: res.result.name,
+          address: res.result.name,
+          ip: res.result.content,
+          ps: res.result.name.split('.')[0],
+          proxied: res.result.proxied
+          }))
+      return cloudFlareApiCallback
+
+      // return {success: true, proxied: cfCheck}
+
+    } catch (e) {
+      console.error(e)
+      return { error: e }
+    }
+  }
+
 
 }
 
@@ -480,3 +477,4 @@ module.exports = { ConfigsDAO: ConfigsDAO }
 
 // ConfigsDAO.getV2Config()
 // init mongodb db.configs.createIndex({"id":1},{ unique: true })
+
